@@ -1,0 +1,347 @@
+<html>
+
+<head><title>VoiceBox</title>
+ <HTA:APPLICATION ID="oHTA";
+  APPLICATIONNAME="VoiceBox";
+  SCROLL="no";
+  BORDERSTYLE="normal";
+  SINGLEINSTANCE="yes";
+  ICON=".\rockboxicon.ico";
+  SHOWINTASKBAR="yes";
+ >
+ <style type="text/css">
+  body  { font-size:14;
+          font-family="Tahoma, Arial";
+          color="black";
+          background-color: b6c6e5;}
+  input { color="black";
+          margin-left:4px;
+          margin-top:2px;
+          margin-right:4px;
+          margin-bottom:2px; }
+  a     { color="black";
+          text-decoration: none; }
+  .credit{font-size:11;
+          margin-top:40px;
+          color="black";
+	  width="25%";
+	  float: right; }
+  a.credits{text-decoration: underline; }
+  hr    { color=#ffc000;
+          margin: 0px; }
+  ul    { font-size:13;
+          margin-left:10px;
+          margin-top:3px;
+          margin-right:6px;
+          margin-bottom:4px; }
+  h3    { font-size:15;
+          margin-left:6px;
+          margin-top:2px;
+          margin-right:6px;
+          margin-bottom:3px; }
+  img   { margin-left:10px;
+          margin-top:0px;
+          margin-right:10px;
+          margin-bottom:4px;
+	  float: left; }
+  .help { color=#222222;
+          font-size:11;
+          margin-left:10px;
+          margin-top:3px;
+          margin-right:6px;
+          margin-bottom:5px; }
+  .help2{ color=#222222;
+          font-size:11;
+          margin-left:5px;
+          margin-top:6px;
+          margin-right:5px;
+          margin-bottom:5px; }
+  .left { width: 25%; 
+          float: left }
+  .center{ width: 30%; 
+          float: left }
+  .right{ width: 40%; 
+          float: right }
+ </style>
+</head>
+
+<body>
+
+ <script language="JavaScript">
+ <!-- Set initial size and position of this window
+   if (window.resizeTo) self.resizeTo(800,830);
+   if (window.moveTo)   self.moveTo(1,1);
+ //-->
+ </script>
+
+ <div class="credit">
+ VoiceBox uses the LGPL'ed<br>
+ <a class="credits" href="http://lame.sourceforge.net/index.html">LAME MP3 encoder</a>
+ </div>
+
+ <img src="rockbox400.png" alt="Rockbox" title="You know you want it.">
+
+ <br clear=all>
+
+ <hr>
+ <h3>Select options:</h3>
+
+ <script language="VBScript" type="text/vbscript" src="voiceUtils.vbs"></script>
+ <script language="VBScript" type="text/vbscript">
+ <!--
+ ' by Brian Wolven (2005/11)
+ 
+  Option Explicit
+
+  Dim objShell, FSO, VoiceBoxHome
+  Dim Encoder, Overwrite_dotTalk, Overwrite_dotWav, RemoveWav, VoiceFolders
+  Dim VoiceFiles, RunSilent, strIniConfig, IniFile
+
+  Set objShell = CreateObject("WScript.Shell")
+  Set FSO      = CreateObject("Scripting.FileSystemObject")
+  VoiceBoxHome = FSO.Getfile(".\voiceBox.hta").ParentFolder
+
+  IniFile = VoiceBoxHome&"\voiceBox.ini"
+  Call Readvars()
+  WriteTextFile IniFile,strIniConfig
+  
+Sub PutCheckbox(Variable, OptText, OptVal, HelpText)
+
+  Dim checked
+  
+  If LCase(OptVal) = "true" Then
+    checked = "checked"
+  Else
+    checked = ""
+  End If
+  document.write "<input type='Checkbox' name='c" & Variable & "' id='c" & _
+                 Variable & "'" & checked & " onClick='VarToggle(""" & _
+	             Variable & """,c" & Variable & ".checked)'>" & _
+	             "<label for='c" & Variable & "'>" & OptText & "</label>"
+  document.write "<br><div class=help>" & HelpText & "</div>"
+
+End Sub
+
+Sub ReadVars()
+
+  Dim chklame, chkspeex
+
+  strIniConfig = ReadIniFile(IniFile)
+  
+  Encoder           = GetVar("Encoder", "speex")
+  Overwrite_dotTalk = GetVar("Overwrite_dotTalk", "false")
+  Overwrite_dotWav  = GetVar("Overwrite_dotWav", "true")
+  RemoveWav         = GetVar("RemoveWav", "true")
+  VoiceFolders      = GetVar("VoiceFolders", "true")
+  VoiceFiles        = GetVar("VoiceFiles", "false")
+  RunSilent         = GetVar("RunSilent", "false")
+  
+  If Encoder = "lame" Then chklame = "checked"
+  If Encoder = "speex" Then chkspeex = "checked"
+  document.write "<input type='Radio' name='rEncoder' id='rEncoder' value='lame' " & _
+                 chklame & " onClick='VarSet(""Encoder"", ""lame"")'>" & _
+                 "<label for='rEncoder'>MP3 format (Archos Player/Studio, Recorders, Ondios)</label>"
+  document.write "<input type='Radio' name='rEncoder' id='rEncoder' value='speex' " & _
+                 chkspeex & " onClick='VarSet(""Encoder"", ""speex"")'>" & _
+                 "<label for='rEncoder'>Speex format (all others)</label>"
+  document.write "<br><div class=help>Select the correct format for your DAP, " & _
+                 "otherwise the generated clips won't work!</div><br>"
+                 
+
+  PutCheckbox "Overwrite_dotTalk", "Overwrite existing .talk files? (Not recommended)", _
+              Overwrite_dotTalk, _
+              "If selected, all existing voice clips will be removed and replaced."
+  PutCheckbox "Overwrite_dotWav", "Overwrite existing .wav files? (Recommended)", _
+              Overwrite_dotWav, "If selected, any existing .wav files will be "&_
+              "regenerated. If you have customized wave files that you'd like "&_
+              "to keep, do not select this option or the one below."
+  PutCheckbox "RemoveWav", "Remove .wav files after processing? (Recommended)", _
+              RemoveWav, "When selected, removes .wav files (generally created by "&_
+              "this script as an intermediate step) when finished."
+  PutCheckbox "VoiceFolders", "Voice folders? (Recommended)", VoiceFolders, _
+              "Generates one '_dirname.talk' clip for each folder."
+  PutCheckbox "VoiceFiles", "Voice individual files? (User preference)", VoiceFiles, _
+              "Generates one '.talk' clip for each music, playlist, or"&_
+              " configuration settings file. Set according to your needs. "&_
+              "This can be time and CPU intensive!!!"
+  PutCheckbox "RunSilent", "Run silently? (User preference)", RunSilent, _
+              "When checked, there will be no sound or popup to indicate "&_
+              "that the script has finished. Good for batch jobs."
+
+End Sub
+
+Sub WriteTextFile(TextFile,contents)
+  Dim MyFile
+  Const ForWriting = 2
+  Set MyFile = fso.OpenTextFile(TextFile, ForWriting, True)
+  MyFile.Write contents
+  MyFile.Close
+  Set MyFile = Nothing
+End Sub
+
+Sub Browse ' various bits extracted from DialogDemo.vbs by Joe Earnest
+
+  Dim voShellApp, voBrowse, vsSln
+
+  Set voShellApp= CreateObject("Shell.Application")
+  Set voBrowse = voShellApp.BrowseForFolder(0, _ 
+                 "Select drive or folder to be processed by VoiceBox", 113, 17)
+
+  On Error Resume Next
+    vsSln= voBrowse.ParentFolder.ParseName(voBrowse.Title).Path
+    If Err Then Err.Clear: vsSln= "": vpColon= InStr(voBrowse, ":"): _
+    If (vpColon>1) Then vsSln= UCase(Mid(voBrowse, vpColon -1, 2)) & "\"
+  On Error GoTo 0
+
+  PathInput.value = vsSln
+
+End Sub
+
+Sub VarToggle(e_var,state)
+  If state Then
+    ExecuteGlobal e_var & " = ""True"""
+  Else
+    ExecuteGlobal e_var & " = ""False"""
+  End If
+  strIniConfig = "Encoder           = " & Encoder           & vbcrlf & _
+                 "Overwrite_dotTalk = " & Overwrite_dotTalk & vbcrlf & _
+                 "Overwrite_dotWav  = " & Overwrite_dotWav  & vbcrlf & _
+                 "RemoveWav         = " & RemoveWav         & vbcrlf & _
+                 "VoiceFolders      = " & VoiceFolders      & vbcrlf & _
+                 "VoiceFiles        = " & VoiceFiles        & vbcrlf & _
+                 "RunSilent         = " & RunSilent
+  WriteTextFile IniFile,strIniConfig
+End Sub
+
+Sub VarSet(e_var,value)
+  ExecuteGlobal e_var & " = """ & value & """"
+  strIniConfig = "Encoder           = " & Encoder           & vbcrlf & _
+                 "Overwrite_dotTalk = " & Overwrite_dotTalk & vbcrlf & _
+                 "Overwrite_dotWav  = " & Overwrite_dotWav  & vbcrlf & _
+                 "RemoveWav         = " & RemoveWav         & vbcrlf & _
+                 "VoiceFolders      = " & VoiceFolders      & vbcrlf & _
+                 "VoiceFiles        = " & VoiceFiles        & vbcrlf & _
+                 "RunSilent         = " & RunSilent
+  WriteTextFile IniFile,strIniConfig
+End Sub
+
+Sub VoiceCPL
+  objShell.Exec("control sapi.cpl,,1")
+End Sub
+
+Function VoiceBoxCmd
+
+  Dim targetFolder
+  
+  If (Len(PathInput.Value) > 0) Then
+    targetFolder = """"&PathInput.value&""""
+  Else
+    targetFolder = ""
+  End If
+
+  VoiceBoxCmd = """"&VoiceBoxHome&"\voiceBox.wsf"" " & targetFolder &_
+                " /Encoder:"&Encoder                     &_
+                " /Overwrite_dotTalk:"&Overwrite_dotTalk &_
+                " /Overwrite_dotWav:"&Overwrite_dotWav   &_
+                " /RemoveWav:"&RemoveWav                 &_
+                " /VoiceFolders:"&VoiceFolders           &_
+                " /VoiceFiles:"&VoiceFiles               &_
+                " /RunSilent:"&RunSilent
+
+End Function
+
+Sub VoiceBoxRun
+
+  objShell.Exec("wscript "& VoiceBoxCmd())
+
+End Sub
+
+Sub VoiceBoxCut
+
+  Dim DesktopPath, DriveLetter, LastSlash, LastFolder, link, linkName
+
+  DesktopPath = objShell.SpecialFolders("Desktop")
+  LastSlash   = InStrRev(PathInput.Value,"\",-1,1)
+  LastFolder  = Right(PathInput.Value,Len(PathInput.Value)-LastSlash)
+
+  If (Len(LastFolder) = 0) Then
+    If (Len(PathInput.Value) <> 0) Then
+      DriveLetter = Left(PathInput.Value,1)
+      linkName    = DesktopPath&"\Voice "&DriveLetter&".lnk"
+    Else
+      linkName    = DesktopPath&"\VoiceBox.lnk"
+    End If
+  Else
+    linkName    = DesktopPath&"\Voice "&LastFolder&".lnk"
+  End If
+
+  Set link = objShell.CreateShortcut(linkName)
+
+  link.TargetPath   = "wscript" 
+  link.Arguments    = VoiceBoxCmd()
+  link.Description  = "VoiceBox shortcut"
+  link.HotKey       = "CTRL+ALT+SHIFT+X"
+  link.IconLocation = VoiceBoxHome&"\rockboxicon.ico"
+  link.WindowStyle  = 3
+  link.WorkingDirectory = VoiceBoxHome
+  link.Save
+
+End Sub
+
+ //-->
+ </script>
+
+ <hr>
+
+ <h3>Select drive or folder to process:</h3>
+  <input type="text" size="68" id="PathInput"
+   title="Select drive or folder to process">
+  <input type="Submit" language="vbscript" value="Browse" onclick="Browse()">
+
+  <br>
+
+  <input type="Submit" language="vbscript" value="Run VoiceBox"      onclick="VoiceBoxRun()">
+  <input type="Submit" language="vbscript" value="Save as Shortcut"  onclick="VoiceBoxCut()">
+  <input type="Button" language="vbscript" value="Exit"              onclick="Window.Close">
+  <div class="help2">
+
+  Selecting "Save as Shortcut" creates a shortcut on the desktop that runs
+  VoiceBox with the currently selected options and path. The shortcut name will
+  consist of 'Voice' followed by the last portion of the specified path to be
+  processed. In other words, you can save different shortcuts with different
+  properties for different folders - if you so desire. If no path is specified,
+  the shortcut will be named simply "VoiceBox", and will run the script with the
+  saved options for any folder or drive you drop on it. If you want to save
+  multiple shortcuts with different options but no specific path, you'll have to
+  rename them yourself!
+
+  </div>
+
+ <hr>
+
+ <h3>Helpful Rockbox links (open in external window):</h3>
+
+<ul class=left>
+ <li><a href="http://www.rockbox.org/twiki/bin/view/Main/VoiceFiles">Voice Files</a>
+ <li><a href="http://www.rockbox.org/twiki/bin/view/Main/VoiceHowto">Voice "Howto"</a>
+ <li><a href="http://www.rockbox.org/twiki/bin/view/Main/BlindUsersIndex">Blind Users Index</a>
+ <li><a href="http://news.gmane.org/gmane.comp.systems.archos.rockbox.general">Rockbox.General Newsgroup</a>
+</ul>
+
+<ul class=center>
+ <li><a href="http://www.rockbox.org/twiki/bin/view/Main/WebHome">Wiki</a>
+ <li><a href="http://www.rockbox.org/twiki/bin/view/Main/RockboxFAQ">FAQ</a>
+ <li><a href="http://www.rockbox.org/twiki/bin/view/Main/RockboxManual">Manual</a>
+ <li><a href="http://www.rockbox.org/">Homepage</a>
+</ul>
+
+<div class=right>
+  <input type="Button" language="vbscript" value="Speech Settings - Control Panel" onclick="VoiceCPL()">
+</div>
+
+ <br clear=all>
+
+ <hr>
+
+</body>
+</html>

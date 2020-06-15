@@ -1,16 +1,16 @@
 # VoiceBox-ITA
 voiceBox leggermente modificato al fine di produrre sintesi vocali in italiano.
 
-VoiceBox - a package of scripts _mainly_ by Brian Wolven, but with help from
+<< VoiceBox - a package of scripts _mainly_ by Brian Wolven, but with help from
 	    Jens Arnold and Joerg. Brian is the one responsible for any
-	    mistakes. =)
+	    mistakes. =) >>
       
 VoiceBox è un programma opensource, sviluppato da Brian Wolven, Jens Arnold e Joerg.
 VoiceBox generara automaticamente file audio al fine di rendere accessibile RockBox anche ad utenti non vedenti o a chi,
 per qualsivoglia necessità, ha bisogno di utilizzare il proprio dispositivo RockBox con l'ausilio di un sintetizzatore vocale.
 
 
-ISTRUZIONI:
+# ISTRUZIONI:
 
 1. Installare la lingua italiana per il sintetizzatore (file: "MSSpeech_SR_it-IT_TELE.msi")
 

@@ -30,6 +30,10 @@ per qualsivoglia necessità, ha bisogno di utilizzare il proprio dispositivo Roc
 6. Chiudi il programma e sposta la cartella contenente la tua libreria musicale all'interno del device.
 
 
+
+
+
+
 P.S.
   Ricorda di abilitare la lettura dei file e delle cartelle nelle impostazioni di rockBox! 
   Solitamente queste opzioni si trovano in: SETTINGS -> GENERAL SETTINGS -> VOICE
